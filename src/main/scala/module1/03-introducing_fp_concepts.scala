@@ -1,9 +1,12 @@
 package module1
 
 import java.util.UUID
-import scala.annotation.tailrec
-import java.time.Instant
 
+import module1.list.List.{::, Cons, Nil}
+import module1.opt.Option.{None, Some}
+import module1.pattern_matching.A
+
+import scala.annotation.tailrec
 import scala.language.postfixOps
 
 
@@ -203,7 +206,7 @@ object hof{
   // Invariant - нет отношений
   type Dog
 
-  sealed trait Option[+T]{
+  sealed trait Option[+T] {
     def isEmpty: Boolean = this match {
       case Option.Some(v) => false
       case Option.None => true
@@ -216,39 +219,62 @@ object hof{
       case Option.Some(v) => f(v)
       case Option.None => Option.None
     }
+
+    /**
+     *
+     * Реализовать метод printIfAny, который будет печатать значение, если оно есть
+     */
+
+    def printIfAny: Unit = this match {
+      case Option.Some(v) => println(v)
+      case Option.None => ()
+
+    }
+
+    /**
+     *
+     * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
+     */
+
+    def zip1[A, B](a: Option[A], b: Option[B]): Option[(A, B)] = (a, b) match {
+
+      case (_, None) => None
+      case (None, _) => None
+      case (Some(x), Some(y)) => Some((x, y))
+    }
+
+    /**
+     *
+     * Реализовать метод filter, который будет возвращать не пустой Option
+     * в случае если исходный не пуст и предикат от значения = true
+     */
+
+    def filter(f: T => Boolean): Option[T] = {
+      this match {
+        case Option.Some(a) if f(a) => Some(a)
+        case _ => None
+      }
+    }
+
+
   }
 
-  object Option{
+
+
+
+  object Option {
 
     case class Some[T](v: T) extends Option[T]
+
     case object None extends Option[Nothing]
+
   }
 
-
-
-
-
-  /**
-   *
-   * Реализовать метод printIfAny, который будет печатать значение, если оно есть
-   */
-
-
-  /**
-   *
-   * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
-   */
-
-
-  /**
-   *
-   * Реализовать метод filter, который будет возвращать не пустой Option
-   * в случае если исходный не пуст и предикат от значения = true
-   */
 
  }
 
  object list {
+
    /**
     *
     * Реализовать односвязанный иммутабельный список List
@@ -257,18 +283,132 @@ object hof{
     * Cons - непустой, содердит первый элемент (голову) и хвост (оставшийся список)
     */
 
-    trait List[+T]{
+  class List[+T]{
 
-    }
+     /**
+      * Метод cons, добавляет элемент в голову списка, для этого метода можно воспользоваться названием `::`
+      *
+      */
+     def ::[TT >: T](head: TT): List[TT] = Cons(head, this)
+
+     /**
+      * Метод mkString возвращает строковое представление списка, с учетом переданного разделителя
+      *
+      */
+
+     def mkString(a: List[A], sep: String): String = {
+       def loop(b: List[A], acc: String): String = {
+         b match {
+           case Nil => acc
+           case head :: tail => {
+             val newAcc = if (acc.isEmpty) head.toString
+             else acc + sep + head.toString
+             loop(tail, newAcc)
+           }
+         }
+       }
+       loop(a, "")
+     }
+
+     /**
+      * Конструктор, позволяющий создать список из N - го числа аргументов
+      * Для этого можно воспользоваться *
+      *
+      * Например вот этот метод принимает некую последовательность аргументов с типом Int и выводит их на печать
+      * def printArgs(args: Int*) = args.foreach(println(_))
+      */
+
+     class NewList(args:A*) {
+       val list: List[A] = List(args: _*)
+     }
+
+     /**
+      *
+      * Реализовать метод reverse который позволит заменить порядок элементов в списке на противоположный
+      */
+
+     def reverse[T](c: List[T]) : List[T] = {
+       def loop(b: List[T], reversed: List[T]): List[T] = {
+         c match {
+           case Nil => reversed
+           case head :: tail => loop(tail, head :: reversed)
+         }
+       }
+       loop(c, Nil)
+     }
+
+     /**
+      *
+      * Реализовать метод map для списка который будет применять некую ф-цию к элементам данного списка
+      */
+   def map[U](f:T => U): List[U] = this match {
+     case Nil => Nil
+     case x :: xs => f(x) :: xs.map(f)
+   }
+
+     /**
+      *
+      * Реализовать метод filter для списка который будет фильтровать список по некому условию
+      */
+     def  filter(p: T=> Boolean): List[T] = {
+     this match {
+       case Nil => Nil
+       case head :: tail => if (p(head)) head :: tail.filter(p)
+       else tail.filter(p)
+
+     }
+   }
+
+     /**
+      *
+      * Написать функцию incList котрая будет принимать список Int и возвращать список,
+      * где каждый элемент будет увеличен на 1
+      */
+     def incList(a: List[Int]) : List[Int] = {
+      def loop(b: List[Int], acc: List[Int]): List[Int] = {
+        b match {
+          case Nil => acc
+          case head :: tail => loop(tail,(head + 1) :: acc)
+        }
+       }
+       loop(a, Nil)
+     }
+
+     /**
+      *
+      * Написать функцию shoutString котрая будет принимать список String и возвращать список,
+      * где к каждому элементу будет добавлен префикс в виде '!'
+      */
+     def shoutString(a: List[String]) : List[String] = {
+       def loop(b: List[String], acc: List[String]): List[String] = {
+         b match {
+           case Nil => acc
+           case head :: tail => loop(tail,(head + "!") :: acc)
+         }
+       }
+       loop(a, Nil)
+     }
+
+
+
+
+
+
+ }
 
     object List{
       case class ::[A](head: A, tail: List[A]) extends List[A]
       case object Nil extends List[Nothing]
 
       def apply[A](v: A*): List[A] =
-        if(v.isEmpty) List.Nil
+        if(v.isEmpty) Nil
         else ::(v.head, apply(v.tail:_*))
+
+      val Cons = ::
+
+
     }
+
 
    List(1, 2, 3, 4)
 
