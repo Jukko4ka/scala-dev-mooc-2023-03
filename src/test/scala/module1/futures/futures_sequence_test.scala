@@ -1,7 +1,6 @@
 package module1.futures
 
 import org.scalatest.flatspec.AnyFlatSpec
-
 import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
